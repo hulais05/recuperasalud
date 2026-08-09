@@ -913,6 +913,9 @@ st.markdown(
        f' alt="RecuperaSalud">' if ISOTIPO.exists() else "")
     + '<div class="nom">Recupera<span>Salud</span></div>'
     + '<div class="ev">Hackathon NOA Innova 2026 · Salta</div>'
+    + '<div class="ev" style="margin-top:6px">'
+      '<a href="https://github.com/hulais05/recuperasalud" target="_blank" '
+      'style="color:inherit">Código abierto en GitHub</a></div>'
     + '<div class="reglas">'
       "<b>Datos sintéticos.</b> Sin datos clínicos ni información real de pacientes: "
       "solo campos administrativos.<br>"
