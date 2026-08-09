@@ -14,7 +14,7 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-from core.datos import generar_lote
+from core.datos import generar_lote, leer_planilla, planilla_ejemplo
 from core.clasificador import (
     clasificar_lote, resumen, causas_frecuentes, hay_ia_disponible,
     VIA_REFACTURACION, VIA_AUDITORIA, VIA_SSSALUD, VIA_NINGUNA,
@@ -314,23 +314,86 @@ with st.sidebar:
     auditor = st.text_input("Auditor a cargo", value="M. Hulais · Facturación")
 
     st.divider()
+    # Ingesta sin fricción: el sistema no pide un formato nuevo ni una
+    # migración, lee el archivo que el hospital ya exporta. Va plegado para no
+    # competir con el recorrido de la demo, que corre sobre el lote sintético.
+    with st.expander("Cargar una planilla propia"):
+        st.caption(
+            "CSV o Excel exportado de tu sistema. Las columnas se buscan por "
+            "sinónimo: sirve *Importe* o *Monto*, *Causal* o *Motivo*."
+        )
+        planilla = st.file_uploader(
+            "Planilla de débitos", type=["csv", "xlsx"],
+            label_visibility="collapsed",
+        )
+        st.download_button(
+            "Descargar planilla de ejemplo",
+            data=planilla_ejemplo(),
+            file_name="planilla-ejemplo-recuperasalud.csv",
+            mime="text/csv", use_container_width=True,
+        )
+        st.caption(
+            "⚠️ Se procesa en memoria y no se guarda nada. Aun así: **no subas "
+            "datos reales de pacientes.** El prototipo es para datos sintéticos."
+        )
+
+    st.divider()
     procesar = st.button("Procesar lote", type="primary", use_container_width=True)
     st.caption("Datos sintéticos. Sin información clínica ni datos reales de pacientes.")
 
 
 # ------------------------------------------------------------------ estado ---
-if procesar or "datos" not in st.session_state:
+def _tabla_del_archivo(archivo):
+    """Devuelve (filas, columnas) de un CSV o un Excel subido.
+
+    El separador del CSV se detecta solo: los sistemas de acá exportan tanto
+    con punto y coma como con coma, y pedirle al usuario que lo sepa sería
+    justamente la fricción que el producto dice no tener.
+    """
+    if archivo.name.lower().endswith(".xlsx"):
+        tabla = pd.read_excel(archivo)
+    else:
+        tabla = pd.read_csv(archivo, sep=None, engine="python", dtype=str)
+    tabla = tabla.where(pd.notna(tabla), None)
+    return tabla.to_dict("records"), list(tabla.columns)
+
+
+# Rehacer el lote cuando se pide, cuando no hay nada, o cuando cambió el
+# archivo cargado. La firma evita releer el mismo archivo en cada interacción.
+firma = f"{planilla.name}·{planilla.size}" if planilla is not None else None
+
+if procesar or "datos" not in st.session_state or firma != st.session_state.get("firma"):
     t0 = time.perf_counter()
-    lote = generar_lote(n=n, semilla=int(semilla))
+    avisos = []
+    if planilla is not None:
+        try:
+            filas, columnas = _tabla_del_archivo(planilla)
+            lote, avisos = leer_planilla(filas, columnas)
+            origen = f"planilla propia · {planilla.name} · {len(lote)} filas leídas"
+        except Exception as e:                       # noqa: BLE001
+            # Que una planilla mal formada no deje la pantalla en blanco en
+            # medio de una demo: se avisa y se sigue con el lote sintético.
+            avisos = [f"No se pudo leer la planilla: {e}"]
+            lote = generar_lote(n=n, semilla=int(semilla))
+            origen = "lote sintético (la planilla no se pudo leer)"
+    else:
+        lote = generar_lote(n=n, semilla=int(semilla))
+        origen = f"lote sintético · semilla {semilla}"
+
     clasificados = clasificar_lote(lote, usar_ia=usar_ia)
     st.session_state["datos"] = clasificados
     # El lote sin clasificar se guarda aparte: es lo que permite reclasificar
     # el mismo conjunto con el reloj adelantado, sin volver a consultar la IA.
     st.session_state["lote_crudo"] = lote
     st.session_state["tiempo"] = time.perf_counter() - t0
+    st.session_state["origen"] = origen
+    st.session_state["avisos"] = avisos
+    st.session_state["firma"] = firma
 
 datos = st.session_state["datos"]
 tiempo = st.session_state["tiempo"]
+origen = st.session_state.get("origen", "")
+avisos = st.session_state.get("avisos", [])
 r = resumen(datos)
 
 # ------------------------------------------------------------------ header ---
@@ -485,6 +548,11 @@ else:
         "El sistema no pide un formato nuevo: **toma el lote como se carga hoy**. No exige "
         "columnas adicionales, ni códigos normalizados, ni que nadie cambie su planilla."
     )
+    # Decir de dónde salió el lote es parte de la trazabilidad: en una demo
+    # tiene que quedar claro si lo que se está viendo es sintético o cargado.
+    st.caption(f"**Origen del lote:** {origen}")
+    for aviso in avisos:
+        st.warning(aviso)
 
     st.write("")
 

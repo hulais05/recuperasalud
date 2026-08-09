@@ -13,7 +13,8 @@ la suciedad de tipeo con la que llegan en la vida real. Ver
 """
 
 import random
-from datetime import date, timedelta
+import unicodedata
+from datetime import date, datetime, timedelta
 
 OBRAS_SOCIALES = [
     "Obra Social A", "Obra Social B", "Obra Social C",
@@ -177,3 +178,177 @@ def generar_lote(n=200, semilla=1812, hoy=None):
             "_familia_real": familia,   # solo para medir precisión, no se muestra
         })
     return lote
+
+
+# --------------------------------------------------------------- ingesta ---
+# Lectura de una planilla propia. El sistema no pide un formato nuevo: toma el
+# archivo tal como lo exporta el hospital y busca sus columnas por sinónimos,
+# porque cada sistema las llama distinto. Nada se guarda en disco.
+
+ALIAS = {
+    "id": ["id", "id_debito", "nro", "numero", "comprobante", "expediente"],
+    "obra_social": ["obra_social", "financiador", "os", "cobertura", "entidad"],
+    "afiliado": ["afiliado", "nro_afiliado", "numero_afiliado", "beneficiario",
+                 "carnet"],
+    "practica": ["practica", "prestacion", "detalle", "servicio", "nomenclador"],
+    "fecha_prestacion": ["fecha_prestacion", "fecha_practica", "fecha_atencion",
+                         "fecha_de_prestacion", "f_prestacion"],
+    "fecha_debito": ["fecha_debito", "fecha_rechazo", "fecha_notificacion",
+                     "fecha_de_debito", "f_debito"],
+    "monto": ["monto", "importe", "valor", "monto_debitado", "importe_debitado",
+              "debitado"],
+    "motivo_texto": ["motivo_texto", "motivo", "motivo_rechazo", "causal",
+                     "observacion", "observaciones", "detalle_rechazo", "glosa"],
+}
+
+# Sin estas cuatro no hay nada que clasificar ni que priorizar por plazo.
+OBLIGATORIAS = ["fecha_prestacion", "fecha_debito", "monto", "motivo_texto"]
+
+
+def _clave(nombre):
+    """Normaliza un encabezado: sin acentos, sin mayúsculas, sin separadores."""
+    txt = unicodedata.normalize("NFKD", str(nombre))
+    txt = "".join(c for c in txt if not unicodedata.combining(c))
+    txt = txt.strip().lower()
+    for viejo in (" ", "-", ".", "/"):
+        txt = txt.replace(viejo, "_")
+    while "__" in txt:
+        txt = txt.replace("__", "_")
+    # "Fecha de atención" y "Fecha atención" son el mismo encabezado. Sacar los
+    # conectores acá evita tener que enumerar cada variante como sinónimo.
+    partes = [p for p in txt.split("_") if p not in ("de", "del", "la", "el")]
+    return "_".join(partes).strip("_") or txt
+
+
+def _mapear_columnas(columnas):
+    """Devuelve {campo_interno: nombre_original} resolviendo por sinónimo."""
+    normalizadas = {_clave(c): c for c in columnas}
+    mapa = {}
+    for campo, alias in ALIAS.items():
+        for a in alias:
+            if a in normalizadas:
+                mapa[campo] = normalizadas[a]
+                break
+    return mapa
+
+
+def _a_monto(valor):
+    """Acepta 1234.5, '1234,50', '$ 1.234,50' y '1,234.50'."""
+    if isinstance(valor, (int, float)) and not isinstance(valor, bool):
+        return float(valor)
+    txt = str(valor)
+    txt = "".join(c for c in txt if c.isdigit() or c in ",.-")
+    if not txt:
+        raise ValueError("monto vacío")
+    corte_coma, corte_punto = txt.rfind(","), txt.rfind(".")
+    if corte_coma >= 0 and corte_punto >= 0:
+        # Con los dos signos no hay ambigüedad: el último es el decimal.
+        if corte_coma > corte_punto:
+            txt = txt.replace(".", "").replace(",", ".")
+        else:
+            txt = txt.replace(",", "")
+    elif corte_coma >= 0 or corte_punto >= 0:
+        # Con uno solo hay que decidir. Tres dígitos detrás es separador de
+        # miles: "$ 18.500" son dieciocho mil quinientos pesos, no 18,5. Acá
+        # equivocarse es un error de mil veces sobre un importe.
+        corte = max(corte_coma, corte_punto)
+        if len(txt) - corte - 1 == 3:
+            txt = txt.replace(",", "").replace(".", "")
+        else:
+            txt = txt.replace(",", ".")
+    return float(txt)
+
+
+def _a_fecha(valor):
+    """Fecha desde date/datetime o texto. Día primero: acá se escribe d/m/a."""
+    if isinstance(valor, datetime):
+        return valor.date()
+    if isinstance(valor, date):
+        return valor
+    txt = str(valor).strip()[:10]
+    for formato in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%d/%m/%y"):
+        try:
+            return datetime.strptime(txt, formato).date()
+        except ValueError:
+            continue
+    raise ValueError(f"fecha ilegible: {valor!r}")
+
+
+def leer_planilla(filas, columnas, hoy=None):
+    """Convierte una planilla propia en un lote con la forma de `generar_lote`.
+
+    `filas` es una lista de diccionarios y `columnas` los encabezados tal como
+    vinieron. Devuelve `(lote, avisos)`: las filas que no se pueden leer se
+    descartan y se informan, en vez de romper el recorrido entero.
+    """
+    hoy = hoy or date.today()
+    mapa = _mapear_columnas(columnas)
+
+    faltan = [c for c in OBLIGATORIAS if c not in mapa]
+    if faltan:
+        legibles = ", ".join(f"**{f}**" for f in faltan)
+        raise ValueError(
+            f"A la planilla le faltan columnas que no se pueden deducir: {legibles}. "
+            "Se buscan por sinónimo, así que alcanza con que el encabezado se "
+            "parezca (por ejemplo 'Importe' vale como monto y 'Causal' como motivo)."
+        )
+
+    lote, avisos, descartadas = [], [], 0
+    for i, fila in enumerate(filas):
+        try:
+            f_prest = _a_fecha(fila[mapa["fecha_prestacion"]])
+            f_debito = _a_fecha(fila[mapa["fecha_debito"]])
+            monto = _a_monto(fila[mapa["monto"]])
+            motivo = str(fila[mapa["motivo_texto"]]).strip()
+            if not motivo:
+                raise ValueError("motivo vacío")
+        except (ValueError, TypeError, KeyError) as e:
+            descartadas += 1
+            if len(avisos) < 3:            # tres ejemplos alcanzan para entender
+                avisos.append(f"Fila {i + 2}: {e}")
+            continue
+
+        f_vence = f_debito + timedelta(days=DIAS_REFACTURACION)
+        f_sssalud = f_prest + timedelta(days=DIAS_ANIVERSARIO_SSSALUD)
+        lote.append({
+            "id": str(fila.get(mapa.get("id", ""), "") or f"FILA-{i + 1:04d}"),
+            "obra_social": str(fila.get(mapa.get("obra_social", ""), "")
+                               or "Sin identificar"),
+            "afiliado": str(fila.get(mapa.get("afiliado", ""), "") or "—"),
+            "practica": str(fila.get(mapa.get("practica", ""), "") or "Sin detalle"),
+            "fecha_prestacion": f_prest,
+            "fecha_debito": f_debito,
+            "fecha_vencimiento": f_vence,
+            "dias_restantes": (f_vence - hoy).days,
+            "fecha_limite_sssalud": f_sssalud,
+            "dias_sssalud": (f_sssalud - hoy).days,
+            "monto": monto,
+            "motivo_texto": motivo,
+            # Sin `_familia_real`: en una planilla real no hay respuesta correcta
+            # conocida, así que no se puede ni se debe medir precisión.
+        })
+
+    if descartadas:
+        avisos.append(
+            f"{descartadas} fila(s) descartada(s) por fecha, monto o motivo ilegible. "
+            "El resto se procesó igual."
+        )
+    if not lote:
+        raise ValueError("No se pudo leer ninguna fila de la planilla.")
+    return lote, avisos
+
+
+def planilla_ejemplo(n=25, semilla=1812):
+    """CSV de ejemplo con la estructura esperada, para probar sin datos reales."""
+    encabezados = ["id", "obra_social", "afiliado", "practica",
+                   "fecha_prestacion", "fecha_debito", "monto", "motivo"]
+    lineas = [";".join(encabezados)]
+    for d in generar_lote(n=n, semilla=semilla):
+        lineas.append(";".join([
+            d["id"], d["obra_social"], d["afiliado"], d["practica"],
+            d["fecha_prestacion"].strftime("%d/%m/%Y"),
+            d["fecha_debito"].strftime("%d/%m/%Y"),
+            f'{d["monto"]:.2f}'.replace(".", ","),
+            d["motivo_texto"],
+        ]))
+    return "\n".join(lineas) + "\n"
