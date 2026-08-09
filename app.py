@@ -40,6 +40,9 @@ FORMULARIOS = _primera(
 )
 LOGO = AQUI / "assets" / "logo.png"
 ISOTIPO = AQUI / "assets" / "isotipo.png"
+# El lema vive en una sola constante: aparece en los tres puntos de identidad
+# (barra lateral, encabezado y pie) y tiene que cambiar en un solo lugar.
+LEMA = "Mismo recurso, mejor proceso."
 
 st.set_page_config(page_title="RecuperaSalud", page_icon="🩺", layout="wide")
 
@@ -92,6 +95,15 @@ st.markdown(f"""
   .cab img {{ height: 54px; width: auto; }}
   .cab .brand {{ line-height: 1.05; }}
   .cab .sub {{ color: {MUT}; font-size: 13px; margin-top: 2px; }}
+  /* El lema es identidad, no dato. Se separa del subtítulo operativo por color
+     de acento y espaciado, para que nadie lo lea como una métrica más. */
+  .lema {{ color: {GREEN}; font-size: 15px; font-weight: 600;
+           letter-spacing: .03em; margin-top: 4px; }}
+  /* 15px es la medida para el encabezado, que es lo que se proyecta. En la
+     barra lateral y en el pie el lema acompaña, no encabeza: a 15px pesaba
+     demasiado y en la columna angosta se partía en dos líneas. */
+  section[data-testid="stSidebar"] .lema {{ font-size: 13px; margin-top: 3px; }}
+  .pie .lema {{ font-size: 13px; margin-top: 3px; }}
 
   /* Pie: cierra la página y sostiene lo que no puede quedar suelto — el
      origen de los datos y el respaldo normativo. */
@@ -260,6 +272,10 @@ with st.sidebar:
         st.markdown(
             '<div class="brand">Recupera<span>Salud</span></div>', unsafe_allow_html=True
         )
+    st.markdown(
+        f'<div class="lema" style="text-align:center">{LEMA}</div>',
+        unsafe_allow_html=True,
+    )
     st.caption("Auditoría asistida de débitos · MVP")
     st.divider()
 
@@ -313,13 +329,16 @@ if ISOTIPO.exists():
     st.markdown(
         f'<div class="cab"><img src="data:image/png;base64,{b64}" alt="RecuperaSalud">'
         f'<div><div class="brand">Recupera<span>Salud</span></div>'
+        f'<div class="lema">{LEMA}</div>'
         f'<div class="sub">Lote de {len(datos)} débitos procesado en '
         f'{duracion(tiempo)}</div></div></div>',
         unsafe_allow_html=True,
     )
 else:
     st.markdown(
-        '<div class="brand">Recupera<span>Salud</span></div>', unsafe_allow_html=True
+        f'<div class="brand">Recupera<span>Salud</span></div>'
+        f'<div class="lema">{LEMA}</div>',
+        unsafe_allow_html=True,
     )
     st.markdown(
         f'<p style="color:{MUT};margin-top:-6px">'
@@ -912,7 +931,8 @@ st.markdown(
     + (f'<img src="data:image/png;base64,{base64.b64encode(ISOTIPO.read_bytes()).decode()}"'
        f' alt="RecuperaSalud">' if ISOTIPO.exists() else "")
     + '<div class="nom">Recupera<span>Salud</span></div>'
-    + '<div class="ev">Hackathon NOA Innova 2026 · Salta</div>'
+    + f'<div class="lema">{LEMA}</div>'
+    + '<div class="ev" style="margin-top:6px">Hackathon NOA Innova 2026 · Salta</div>'
     + '<div class="ev" style="margin-top:6px">'
       '<a href="https://github.com/hulais05/recuperasalud" target="_blank" '
       'style="color:inherit">Código abierto en GitHub</a></div>'
