@@ -151,13 +151,21 @@ st.markdown(f"""
   .pipe {{ display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 2px; }}
   /* Las siete etapas tienen que leerse como una línea. Con base fija, una
      palabra larga ("Cuantificación") empuja y las últimas dos caen a un
-     segundo renglón: por eso reparto a partes iguales con min-width 0. */
+     segundo renglón, así que el ancho se reparte a partes iguales.
+     `min-width: min-content` y no 0: con 0 la caja podía achicarse por debajo
+     de su palabra más larga y "Cuantificación" se partía al medio. Con
+     min-content ninguna caja baja del ancho de su palabra, y el nombre nunca
+     se corta. */
   .paso {{
-    flex: 1 1 0; min-width: 0; background: {CARD}; border: 1px solid {BORDE};
-    border-radius: 10px; padding: 10px 12px;
+    flex: 1 1 0; min-width: min-content; background: {CARD};
+    border: 1px solid {BORDE}; border-radius: 10px; padding: 10px 12px;
   }}
   .paso .n {{ color: {MUT}; font-size: 10px; letter-spacing: .1em; }}
-  .paso .q {{ font-size: 14px; font-weight: 650; line-height: 1.2; margin: 2px 0 3px; }}
+  /* El cuerpo achica un poco antes que partir la palabra: en ventanas angostas
+     la tira se mantiene en una línea bajando de 14px a 12px. */
+  .paso .q {{ font-size: clamp(12px, .95vw, 14px); font-weight: 650;
+              line-height: 1.2; margin: 2px 0 3px;
+              overflow-wrap: normal; word-break: normal; hyphens: none; }}
   .paso .w {{ color: {MUT}; font-size: 11px; }}
   .paso.humano {{
     border: 1.5px solid {GREEN}; background: #ECFDF5;
