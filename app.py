@@ -72,7 +72,11 @@ st.markdown(f"""
      quedaba mucho más alta que la de al lado. Acá el stretch es del flex y
      todas terminan con la altura de la más alta, sin números mágicos. */
   .tarjetas {{ display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }}
-  .tarjetas .kpi {{ flex: 1 1 0; min-width: 170px; }}
+  /* `height: auto` no es redundante: align-items:stretch solo estira al hijo
+     cuyo alto computado es `auto`, y .kpi trae `height: 100%` para cuando la
+     tarjeta se dibuja dentro de un st.columns. Un porcentaje no es `auto`, así
+     que el stretch se salteaba y la tarjeta de pie más corto quedaba baja. */
+  .tarjetas .kpi {{ flex: 1 1 0; min-width: 170px; height: auto; }}
   .kpi .lbl {{ color: {MUT}; font-size: 11px; letter-spacing: .09em;
               text-transform: uppercase; margin-bottom: 8px; }}
   /* El número manda y la etiqueta acompaña: peso 600 en vez de 700 y tracking
