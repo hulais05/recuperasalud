@@ -58,15 +58,18 @@ st.markdown(f"""
     background: {CARD}; border-right: 1px solid {BORDE};
   }}
   h1, h2, h3, h4, p, label, span {{ color: {TXT}; }}
-  /* min-height, y no solo height:100%: Streamlit no estira las columnas de una
-     misma fila, así que una tarjeta cuyo pie ocupa una línea quedaba más baja
-     que la de al lado. El piso fijo las empareja. */
   .kpi {{
     background: {CARD}; border-radius: 12px; padding: 18px 20px;
-    border: 1px solid {BORDE}; height: 100%; min-height: 134px;
+    border: 1px solid {BORDE}; height: 100%;
     box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 1px 3px rgba(15, 23, 42, .06);
   }}
-  div[data-testid="stHorizontalBlock"] {{ align-items: stretch; }}
+  /* Las filas de tarjetas se dibujan como un solo contenedor flex y no con
+     st.columns. Streamlit no estira las columnas de una misma fila: cada una
+     mide lo que mide su contenido, y una tarjeta con el pie en tres líneas
+     quedaba mucho más alta que la de al lado. Acá el stretch es del flex y
+     todas terminan con la altura de la más alta, sin números mágicos. */
+  .tarjetas {{ display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }}
+  .tarjetas .kpi {{ flex: 1 1 0; min-width: 170px; }}
   .kpi .lbl {{ color: {MUT}; font-size: 11px; letter-spacing: .09em;
               text-transform: uppercase; margin-bottom: 8px; }}
   /* El número manda y la etiqueta acompaña: peso 600 en vez de 700 y tracking
@@ -190,6 +193,27 @@ def kpi(col, label, value, sub="", color=TXT, texto=False):
         f'<div class="{clase}" style="color:{color}">{value}</div>'
         f'<div class="sub">{sub}</div></div>',
         unsafe_allow_html=True,
+    )
+
+
+def tarjetas(items):
+    """Fila de tarjetas de altura pareja.
+
+    `items` es una lista de (etiqueta, valor, pie, color) o
+    (etiqueta, valor, pie, color, texto), donde texto=True achica el valor
+    para que las etiquetas largas envuelvan dentro de la tarjeta.
+    """
+    bloques = []
+    for it in items:
+        label, value, sub, color = it[:4]
+        clase = "val txt" if (len(it) > 4 and it[4]) else "val"
+        bloques.append(
+            f'<div class="kpi"><div class="lbl">{label}</div>'
+            f'<div class="{clase}" style="color:{color}">{value}</div>'
+            f'<div class="sub">{sub}</div></div>'
+        )
+    st.markdown(
+        '<div class="tarjetas">' + "".join(bloques) + "</div>", unsafe_allow_html=True
     )
 
 
@@ -582,15 +606,16 @@ st.subheader("El lote completo")
 st.caption(f"Lo mismo, aplicado a los {len(datos)} débitos del lote.")
 st.write("")
 
-c1, c2, c3, c4 = st.columns(4)
-kpi(c1, "Recuperable identificado", pesos(r["recuperable"]),
-    f'{r["pct_recuperable"]:.0f}% del total debitado', GREEN)
-kpi(c2, "Débitos analizados", f'{len(datos)}',
-    f'{duracion(tiempo)} de procesamiento')
-kpi(c3, "Vencen en 15 días", f'{r["urgentes_cant"]}',
-    f'{pesos(r["urgentes_monto"])} en riesgo', AMBER)
-kpi(c4, "Total debitado", pesos(r["total"]),
-    f'{pesos(r["montos"]["ROJO"])} no recuperable', MUT)
+tarjetas([
+    ("Recuperable identificado", pesos(r["recuperable"]),
+     f'{r["pct_recuperable"]:.0f}% del total debitado', GREEN),
+    ("Débitos analizados", f'{len(datos)}',
+     f'{duracion(tiempo)} de procesamiento', TXT),
+    ("Vencen en 15 días", f'{r["urgentes_cant"]}',
+     f'{pesos(r["urgentes_monto"])} en riesgo', AMBER),
+    ("Total debitado", pesos(r["total"]),
+     f'{pesos(r["montos"]["ROJO"])} no recuperable', MUT),
+])
 
 st.write("")
 st.divider()
@@ -598,13 +623,15 @@ st.divider()
 # ---------------------------------------------------------------- semáforo ---
 st.subheader("Semáforo de recuperabilidad")
 
-s1, s2, s3 = st.columns(3)
-for col, clave, titulo, color, desc in [
-    (s1, "VERDE", "Recuperable ahora", GREEN, "Falla de forma. Se corrige y se refactura."),
-    (s2, "AMARILLO", "Recuperable con acción", AMBER, "Requiere una gestión previa."),
-    (s3, "ROJO", "No recuperable", RED, "Sin cobertura, sin plan o plazo vencido."),
-]:
-    kpi(col, titulo, pesos(r["montos"][clave]), f'{r["cantidades"][clave]} débitos · {desc}', color)
+tarjetas([
+    (titulo, pesos(r["montos"][clave]),
+     f'{r["cantidades"][clave]} débitos · {desc}', color)
+    for clave, titulo, color, desc in [
+        ("VERDE", "Recuperable ahora", GREEN, "Falla de forma. Se corrige y se refactura."),
+        ("AMARILLO", "Recuperable con acción", AMBER, "Requiere una gestión previa."),
+        ("ROJO", "No recuperable", RED, "Sin cobertura, sin plan o plazo vencido."),
+    ]
+])
 
 st.write("")
 st.caption(
@@ -626,10 +653,11 @@ VIAS = [
     (VIA_NINGUNA, RED, "Sin camino disponible."),
 ]
 
-v1, v2, v3, v4 = st.columns(4)
-for col, (nombre, color, desc) in zip((v1, v2, v3, v4), VIAS):
-    dato = r["por_via"].get(nombre, {"cantidad": 0, "monto": 0.0})
-    kpi(col, nombre, pesos(dato["monto"]), f'{dato["cantidad"]} débitos · {desc}', color)
+tarjetas([
+    (nombre, pesos(r["por_via"].get(nombre, {"monto": 0.0})["monto"]),
+     f'{r["por_via"].get(nombre, {"cantidad": 0})["cantidad"]} débitos · {desc}', color)
+    for nombre, color, desc in VIAS
+])
 
 sss = r["por_via"].get(VIA_SSSALUD)
 if sss and sss["cantidad"]:
@@ -706,14 +734,14 @@ if crudo:
     hoy_f = foto(crudo, 0)
     ahora = foto(crudo, dias_adelante)
 
-    t1, t2, t3 = st.columns(3)
-    kpi(t1, FACIL, pesos(ahora[FACIL]),
-        f'Eran {pesos(hoy_f[FACIL])} hoy', GREEN if ahora[FACIL] else MUT)
-    kpi(t2, DURO, pesos(ahora[DURO]),
-        "Vía lenta: hay que ir a la Superintendencia", AMBER)
-    kpi(t3, MUERTO, pesos(ahora[MUERTO]),
-        f'+{pesos(ahora[MUERTO] - hoy_f[MUERTO])} respecto de hoy',
-        RED if ahora[MUERTO] > hoy_f[MUERTO] else MUT)
+    tarjetas([
+        (FACIL, pesos(ahora[FACIL]), f'Eran {pesos(hoy_f[FACIL])} hoy',
+         GREEN if ahora[FACIL] else MUT),
+        (DURO, pesos(ahora[DURO]), "Vía lenta: hay que ir a la Superintendencia", AMBER),
+        (MUERTO, pesos(ahora[MUERTO]),
+         f'+{pesos(ahora[MUERTO] - hoy_f[MUERTO])} respecto de hoy',
+         RED if ahora[MUERTO] > hoy_f[MUERTO] else MUT),
+    ])
 
     st.write("")
     st.area_chart(curva, height=280, color=[GREEN, AMBER, "#A16207", RED])
@@ -839,15 +867,16 @@ st.caption(
     "que hoy circula entre un hospital público y una obra social."
 )
 
-d1, d2, d3, d4, d5 = st.columns(5)
-for col, (paso, nombre, quien) in zip((d1, d2, d3, d4, d5), [
-    ("1", "Orden de prestación", "Se firma en la ventanilla"),
-    ("2", "Planilla de liquidación", "La arma el administrativo"),
-    ("3", "Detalle de débitos", "Lo devuelve la auditoría"),
-    ("4", "Acta de auditoría conjunta", "Art. 14 Res. 487/2002"),
-    ("5", "Nota de descargo", "La genera este sistema"),
-]):
-    kpi(col, f"Paso {paso}", nombre, quien, GREEN if paso == "5" else TXT, texto=True)
+tarjetas([
+    (f"Paso {paso}", nombre, quien, GREEN if paso == "5" else TXT, True)
+    for paso, nombre, quien in [
+        ("1", "Orden de prestación", "Se firma en la ventanilla"),
+        ("2", "Planilla de liquidación", "La arma el administrativo"),
+        ("3", "Detalle de débitos", "Lo devuelve la auditoría"),
+        ("4", "Acta de auditoría conjunta", "Art. 14 Res. 487/2002"),
+        ("5", "Nota de descargo", "La genera este sistema"),
+    ]
+])
 
 st.write("")
 
