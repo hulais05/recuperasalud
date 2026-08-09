@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuito documental — RecuperaSalud (ejemplos ficticios)</title>
+<style>
+  :root{
+    --tinta:#1a1a1a; --tenue:#666; --linea:#c9c9c9; --linea-fuerte:#333;
+    --papel:#fff; --fondo:#e8e6e1; --rojo:#a3231c; --verde:#1f6b3f; --azul:#1f3864;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px 16px; background:var(--fondo); color:var(--tinta);
+    font-family:"Helvetica Neue",Arial,sans-serif; font-size:13px; line-height:1.45;
+  }
+  .intro{max-width:820px; margin:0 auto 32px; font-size:14px}
+  .intro h1{font-size:22px; margin:0 0 6px}
+  .intro p{color:#3a3a3a; margin:6px 0}
+  .aviso{
+    max-width:820px; margin:0 auto 32px; padding:12px 16px; background:#fff5f4;
+    border-left:4px solid var(--rojo); font-size:13px;
+  }
+  .aviso strong{color:var(--rojo)}
+
+  .hoja{
+    max-width:820px; margin:0 auto 28px; background:var(--papel); padding:30px 34px;
+    box-shadow:0 1px 3px rgba(0,0,0,.18); position:relative;
+  }
+  .sello-ficticio{
+    position:absolute; top:18px; right:24px; transform:rotate(-8deg);
+    border:2px solid var(--rojo); color:var(--rojo); font-size:10px; font-weight:700;
+    letter-spacing:1.5px; padding:3px 8px; opacity:.75;
+  }
+  .etiqueta{
+    font-size:10px; letter-spacing:1.6px; text-transform:uppercase; color:var(--tenue);
+    margin-bottom:4px;
+  }
+  .membrete{border-bottom:2px solid var(--linea-fuerte); padding-bottom:10px; margin-bottom:16px}
+  .membrete h2{font-size:15px; margin:0 0 2px; letter-spacing:.3px}
+  .membrete .sub{font-size:11px; color:var(--tenue)}
+  .titulo-doc{
+    text-align:center; font-size:14px; font-weight:700; letter-spacing:1px;
+    text-transform:uppercase; margin:14px 0 16px;
+  }
+  .norma{
+    font-size:11px; color:var(--tenue); text-align:center; margin:-12px 0 16px; font-style:italic;
+  }
+
+  .campos{display:grid; grid-template-columns:repeat(2,1fr); gap:10px 22px; margin-bottom:14px}
+  .campos.tres{grid-template-columns:repeat(3,1fr)}
+  .campo{border-bottom:1px solid var(--linea); padding-bottom:2px; min-height:34px}
+  .campo .k{font-size:9.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--tenue)}
+  .campo .v{font-size:13px; font-family:"Courier New",monospace}
+  .ancho{grid-column:1/-1}
+
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:11.5px}
+  th{
+    background:#f0efec; text-align:left; padding:6px 7px; border:1px solid var(--linea);
+    font-size:9.5px; text-transform:uppercase; letter-spacing:.6px;
+  }
+  td{padding:6px 7px; border:1px solid var(--linea); vertical-align:top}
+  td.num{text-align:right; font-family:"Courier New",monospace; white-space:nowrap}
+  tfoot td{background:#f7f6f4; font-weight:700}
+
+  .firmas{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:34px}
+  .firmas.dos{grid-template-columns:repeat(2,1fr)}
+  .firma{border-top:1px solid var(--linea-fuerte); padding-top:5px; font-size:10px; color:var(--tenue); text-align:center}
+
+  .jurada{
+    border:1px solid var(--linea-fuerte); padding:9px 12px; margin:14px 0;
+    font-size:11px; background:#fafaf8;
+  }
+  .nota{font-size:10.5px; color:var(--tenue); margin-top:12px; line-height:1.5}
+  .chip{
+    display:inline-block; padding:1px 7px; border-radius:9px; font-size:9.5px;
+    font-weight:700; letter-spacing:.4px;
+  }
+  .chip.re{background:#e5f3ea; color:var(--verde); border:1px solid #b6dcc6}
+  .chip.nore{background:#fbe9e8; color:var(--rojo); border:1px solid #eec4c1}
+  .generado{border-top:3px solid var(--azul)}
+  .generado .titulo-doc{color:var(--azul)}
+  .marca-ia{
+    font-size:10px; color:var(--azul); border:1px solid #c3cfe3; background:#f4f7fc;
+    padding:6px 10px; margin-bottom:14px;
+  }
+  .reloj{color:var(--rojo); font-weight:700}
+
+  @media print{
+    body{background:#fff; padding:0; font-size:11px}
+    .intro,.aviso{display:none}
+    .hoja{box-shadow:none; margin:0; max-width:none; padding:0; page-break-after:always}
+    .hoja:last-child{page-break-after:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>El circuito, documento por documento</h1>
+  <p>Cinco formularios que reproducen la <strong>estructura real</strong> de los documentos que
+  hoy circulan en papel entre un hospital público y una obra social, desde la ventanilla hasta
+  el reclamo. Están ordenados como ocurren en la vida real.</p>
+  <p>El quinto no existe en ningún hospital: <strong>es el que genera la herramienta</strong>.</p>
+</div>
+
+<div class="aviso">
+  <strong>Todos los datos son ficticios.</strong> Personas, matrículas, números de afiliado,
+  obras sociales, montos y el hospital son inventados. Lo único tomado de la realidad es la
+  <em>estructura</em> de cada formulario, los campos exigidos y las causales de débito, según
+  la normativa pública citada en cada pie. Ver <code>README.md</code> para las fuentes.
+</div>
+
+
+<!-- ============ 1. ORDEN DE PRESTACIÓN ============ -->
+<div class="hoja">
+  <div class="sello-ficticio">EJEMPLO FICTICIO</div>
+  <div class="membrete">
+    <div class="etiqueta">Agente del Seguro de Salud</div>
+    <h2>OBRA SOCIAL «A»</h2>
+    <div class="sub">R.N.O.S. 0-0000-0 &nbsp;·&nbsp; Validador en línea &nbsp;·&nbsp; Delegación NOA</div>
+  </div>
+
+  <div class="titulo-doc">Orden de prestación — Bono de atención</div>
+  <div class="norma">Comprobante que el afiliado presenta y firma. Su defecto es la causa
+  más frecuente de débito.</div>
+
+  <div class="campos tres">
+    <div class="campo"><div class="k">N.º de autorización</div><div class="v">7-4419-208663</div></div>
+    <div class="campo"><div class="k">Fecha de emisión</div><div class="v">12/03/2026</div></div>
+    <div class="campo"><div class="k">Vigencia</div><div class="v">30 días corridos</div></div>
+  </div>
+
+  <div class="campos">
+    <div class="campo"><div class="k">Apellido y nombre del beneficiario</div><div class="v">G., M. A.</div></div>
+    <div class="campo"><div class="k">Documento</div><div class="v">DNI 00.000.000</div></div>
+    <div class="campo"><div class="k">N.º de afiliado</div><div class="v">12-34567890-1</div></div>
+    <div class="campo"><div class="k">Plan</div><div class="v">CLÁSICO</div></div>
+  </div>
+
+  <div class="campos">
+    <div class="campo"><div class="k">Efector</div><div class="v">Hospital Zonal «Cerro Verde» — HPGD N.º 47</div></div>
+    <div class="campo"><div class="k">Servicio</div><div class="v">Diagnóstico por imágenes</div></div>
+    <div class="campo ancho"><div class="k">Práctica autorizada (código de nomenclador)</div><div class="v">18.01.02 — Ecografía abdominal</div></div>
+    <div class="campo ancho"><div class="k">Diagnóstico presuntivo <span style="color:var(--rojo)">(obligatorio, letra legible)</span></div><div class="v">Dolor abdominal en estudio</div></div>
+    <div class="campo"><div class="k">Fecha de realización</div><div class="v">12/03/2026</div></div>
+    <div class="campo"><div class="k">Coseguro percibido</div><div class="v">$ 0,00 — exento</div></div>
+  </div>
+
+  <div class="firmas">
+    <div class="firma">Firma y sello del profesional<br><strong>con número de matrícula</strong></div>
+    <div class="firma">Firma y aclaración del afiliado<br><strong>(conformidad de atención)</strong></div>
+    <div class="firma">Responsable administrativo<br>sello, cargo y aclaración</div>
+  </div>
+
+  <div class="nota">
+    <strong>Campos exigidos:</strong> diagnóstico · firma y sello del profesional · firma y
+    aclaración del afiliado · fecha. La omisión de cualquiera de ellos es, por sí sola, causal
+    de débito. Las <em>enmiendas sin salvar</em> también.<br>
+    <em>Estructura conforme a las normas de facturación publicadas en manuales de prestadores
+    de agentes del seguro de salud, y al Anexo II de la Res. 487/2002 MS (comprobante de
+    atención con carácter de declaración jurada).</em>
+  </div>
+</div>
+
+
+<!-- ============ 2. PLANILLA DE LIQUIDACIÓN ============ -->
+<div class="hoja">
+  <div class="sello-ficticio">EJEMPLO FICTICIO</div>
+  <div class="membrete">
+    <div class="etiqueta">Provincia de Salta — Ministerio de Salud Pública</div>
+    <h2>HOSPITAL ZONAL «CERRO VERDE» — HPGD N.º 47</h2>
+    <div class="sub">Registro Nacional de HPGD — Decreto 939/2000 PEN &nbsp;·&nbsp; Oficina de Facturación y Recupero</div>
+  </div>
+
+  <div class="titulo-doc">Planilla de liquidación — Presentación mensual</div>
+  <div class="norma">Lo que arma el personal administrativo. Una vez finalizada, no admite cambios.</div>
+
+  <div class="campos tres">
+    <div class="campo"><div class="k">N.º de planilla</div><div class="v">2026-03-0412</div></div>
+    <div class="campo"><div class="k">Sector</div><div class="v">Ambulatorio</div></div>
+    <div class="campo"><div class="k">Período facturado</div><div class="v">Marzo 2026</div></div>
+    <div class="campo"><div class="k">Agente del seguro</div><div class="v">Obra Social «A»</div></div>
+    <div class="campo"><div class="k">Estado</div><div class="v">FINALIZADA</div></div>
+    <div class="campo"><div class="k">Fecha de presentación</div><div class="v">05/04/2026</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:15%">N.º orden / fin de internación</th>
+        <th style="width:12%">Afiliado</th>
+        <th style="width:10%">Fecha real.</th>
+        <th>Práctica</th>
+        <th style="width:10%">Concepto</th>
+        <th style="width:12%">Importe</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>7-4419-208663</td><td>12-34567890-1</td><td>12/03/2026</td><td>18.01.02 · Ecografía abdominal</td><td>Especialista</td><td class="num">86.400,00</td></tr>
+      <tr><td>7-4419-208663</td><td>12-34567890-1</td><td>12/03/2026</td><td>18.01.02 · Ecografía abdominal</td><td>Gasto</td><td class="num">12.600,00</td></tr>
+      <tr><td>7-4419-211904</td><td>28-11223344-5</td><td>14/03/2026</td><td>42.01.01 · Consulta en guardia</td><td>Especialista</td><td class="num">31.200,00</td></tr>
+      <tr><td>7-4419-214077</td><td>34-99887766-0</td><td>17/03/2026</td><td>34.02.05 · Radiografía simple</td><td>Especialista</td><td class="num">27.800,00</td></tr>
+      <tr><td>7-4419-214077</td><td>34-99887766-0</td><td>17/03/2026</td><td>34.02.05 · Radiografía simple</td><td>Gasto</td><td class="num">9.400,00</td></tr>
+      <tr><td>FI-2026-00318</td><td>45-55443322-7</td><td>19/03/2026</td><td>Internación clínica 24 h</td><td>Módulo</td><td class="num">248.500,00</td></tr>
+      <tr><td colspan="6" style="text-align:center; color:var(--tenue); font-style:italic">… 183 registros restantes …</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="5">Total presentado — planilla 2026-03-0412 (189 órdenes)</td><td class="num">14.732.900,00</td></tr>
+    </tfoot>
+  </table>
+
+  <div class="jurada">
+    <strong>Se acompaña:</strong> comprobante contable · máster de liquidación emitido por
+    sistema · documentación respaldatoria (órdenes, R/P, informes) · Anexo I y Anexo II de la
+    Res. 487/2002 MS con carácter de <strong>declaración jurada</strong> · constancia de
+    notificación fehaciente al Agente del Seguro.
+  </div>
+
+  <div class="firmas dos">
+    <div class="firma">Responsable de Facturación<br>sello, cargo y aclaración</div>
+    <div class="firma">Director del Hospital<br>firma y sello — Anexo I</div>
+  </div>
+
+  <div class="nota">
+    El Agente del Seguro debe saldar lo facturado dentro de los <strong>60 días corridos</strong>
+    de presentada la facturación mensual (Dec. 939/2000, arts. 15 a 18).<br>
+    <em>Estructura conforme al sistema de facturación por planillas de liquidación de la obra
+    social provincial de Salta (número de orden o fin de internación, documento del afiliado,
+    fecha de realización, matrícula, concepto —especialista, anestesista, ayudantes, gasto—,
+    cantidad e importe).</em>
+  </div>
+</div>
+
+
+<!-- ============ 3. DETALLE DE DÉBITOS ============ -->
+<div class="hoja">
+  <div class="sello-ficticio">EJEMPLO FICTICIO</div>
+  <div class="membrete">
+    <div class="etiqueta">Agente del Seguro de Salud — Gerencia de Auditoría Médica</div>
+    <h2>OBRA SOCIAL «A»</h2>
+    <div class="sub">Liquidación de prestaciones — Notificación de débitos</div>
+  </div>
+
+  <div class="titulo-doc">Detalle de débitos</div>
+  <div class="norma">Lo que vuelve. Texto libre, sin criterio uniforme, sin códigos. Este es el
+  documento que hoy se lee a mano, orden por orden.</div>
+
+  <div class="campos tres">
+    <div class="campo"><div class="k">Prestador</div><div class="v">HPGD N.º 47</div></div>
+    <div class="campo"><div class="k">Planilla observada</div><div class="v">2026-03-0412</div></div>
+    <div class="campo"><div class="k">Fecha de notificación</div><div class="v">22/05/2026</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:11%">N.º débito</th>
+        <th style="width:14%">N.º orden</th>
+        <th>Motivo informado por auditoría</th>
+        <th style="width:12%">Importe debitado</th>
+        <th style="width:13%">Categoría</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>DEB-2026-0117</td><td>7-4419-208663</td><td>FALTA FIRMA Y SELLO DEL PROFESIONAL ACTUANTE</td><td class="num">99.000,00</td><td><span class="chip re">Re facturable</span></td></tr>
+      <tr><td>DEB-2026-0118</td><td>7-4419-211904</td><td>falta diagnostico</td><td class="num">31.200,00</td><td><span class="chip re">Re facturable</span></td></tr>
+      <tr><td>DEB-2026-0119</td><td>7-4419-214077</td><td>Datos del beneficiario ilegibles</td><td class="num">37.200,00</td><td><span class="chip re">Re facturable</span></td></tr>
+      <tr><td>DEB-2026-0120</td><td>FI-2026-00318</td><td>SIN AUTORIZACION PREVIA - PRACTICA PROGRAMADA</td><td class="num">248.500,00</td><td><span class="chip re">Re facturable</span></td></tr>
+      <tr><td>DEB-2026-0121</td><td>7-4419-219355</td><td>enmienda sin salvar en fecha de realizacion</td><td class="num">44.800,00</td><td><span class="chip re">Re facturable</span></td></tr>
+      <tr><td>DEB-2026-0122</td><td>7-4419-221088</td><td>s/firma conformidad afiliado</td><td class="num">28.900,00</td><td><span class="chip nore">No re facturable</span></td></tr>
+      <tr><td>DEB-2026-0123</td><td>7-4419-223641</td><td>afiliado no figura en padron a la fecha de prestacion</td><td class="num">55.300,00</td><td><span class="chip nore">No re facturable</span></td></tr>
+      <tr><td>DEB-2026-0124</td><td>7-4419-224900</td><td>presentacion fuera de termino</td><td class="num">19.700,00</td><td><span class="chip nore">No re facturable</span></td></tr>
+      <tr><td colspan="5" style="text-align:center; color:var(--tenue); font-style:italic">… 71 débitos restantes …</td></tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="3">Total debitado sobre la planilla — 79 órdenes observadas</td><td class="num">3.418.600,00</td><td></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="jurada">
+    El prestador deberá emitir la <strong>Nota de Crédito</strong> correspondiente al débito
+    (RG AFIP 4540/2019). <em>La falta de envío de Nota de Crédito imposibilitará el pago de la
+    factura liquidada.</em>
+  </div>
+
+  <div class="nota">
+    <strong>La columna «Categoría» no viene en el documento real.</strong> La agrega
+    RecuperaSalud. En el papel que llega al hospital hay solo texto libre: mayúsculas
+    inconsistentes, abreviaturas y errores de tipeo. Separar lo recuperable de lo perdido es
+    hoy trabajo manual, orden por orden, contra reloj.<br>
+    <em>Causales tomadas de las listas publicadas en manuales de prestadores de agentes del
+    seguro de salud, que las clasifican textualmente en «débitos re facturables» y «débitos no
+    re facturables».</em>
+  </div>
+</div>
+
+
+<!-- ============ 4. ACTA DE AUDITORÍA CONJUNTA ============ -->
+<div class="hoja">
+  <div class="sello-ficticio">EJEMPLO FICTICIO</div>
+  <div class="membrete">
+    <div class="etiqueta">Régimen de Hospitales Públicos de Gestión Descentralizada</div>
+    <h2>ACTA DE AUDITORÍA CONJUNTA</h2>
+    <div class="sub">Art. 18 Decreto 939/2000 PEN &nbsp;·&nbsp; Art. 14 Resolución 487/2002 MS</div>
+  </div>
+
+  <div class="norma">Se labra en tres ejemplares, en el hospital, con las dos partes presentes.
+  Su inclusión en el expediente es obligatoria para el HPGD.</div>
+
+  <div class="campos tres">
+    <div class="campo"><div class="k">Lugar</div><div class="v">HPGD N.º 47 — Salta</div></div>
+    <div class="campo"><div class="k">Fecha</div><div class="v">04/06/2026</div></div>
+    <div class="campo"><div class="k">Ejemplares</div><div class="v">Tres (3)</div></div>
+  </div>
+
+  <div class="etiqueta" style="margin-top:16px">1 · Acreditación de la personería</div>
+  <div class="campos">
+    <div class="campo"><div class="k">Médico auditor del Agente del Seguro</div><div class="v">Dr. R. P. — M.P. 0000</div></div>
+    <div class="campo"><div class="k">Instrumento que acredita representación</div><div class="v">Poder / designación N.º 000-2026</div></div>
+    <div class="campo"><div class="k">Por el HPGD</div><div class="v">Jefe de Facturación y Recupero</div></div>
+    <div class="campo"><div class="k">Solicitud de auditoría</div><div class="v">Carta documento del 28/05/2026</div></div>
+  </div>
+
+  <div class="etiqueta" style="margin-top:14px">2 · Objeto</div>
+  <table>
+    <thead><tr><th style="width:16%">N.º de factura</th><th style="width:18%">Orden / prestación</th><th>Beneficiario</th><th style="width:14%">Monto en discusión</th></tr></thead>
+    <tbody>
+      <tr><td>A-0047-00001832</td><td>7-4419-208663</td><td>G., M. A. — afil. 12-34567890-1</td><td class="num">99.000,00</td></tr>
+      <tr><td>A-0047-00001832</td><td>FI-2026-00318</td><td>L., J. C. — afil. 45-55443322-7</td><td class="num">248.500,00</td></tr>
+    </tbody>
+  </table>
+
+  <div class="etiqueta" style="margin-top:14px">3 · Motivos — observaciones y fundamentos</div>
+  <div class="jurada" style="min-height:74px">
+    El Agente del Seguro observa la orden 7-4419-208663 por ausencia de firma y sello del
+    profesional actuante. El HPGD exhibe la historia clínica correspondiente y el registro del
+    servicio de diagnóstico por imágenes, donde consta la realización de la práctica y la
+    identificación del profesional interviniente con su matrícula.<br><br>
+    Respecto de FI-2026-00318, el HPGD deja constancia de que se trató de una internación de
+    urgencia por demanda espontánea, notificada al Agente del Seguro dentro de las 48 horas
+    hábiles conforme Res. 487/2002 MS, y acompaña la constancia de notificación fehaciente.
+  </div>
+
+  <div class="etiqueta" style="margin-top:14px">4 · Conclusiones — acuerdo o discrepancia y montos debitados</div>
+  <table>
+    <thead><tr><th style="width:22%">Prestación</th><th style="width:18%">Resultado</th><th style="width:16%">Monto que se mantiene debitado</th><th>Observación</th></tr></thead>
+    <tbody>
+      <tr><td>7-4419-208663</td><td><strong>Acuerdo</strong> — se levanta el débito</td><td class="num">0,00</td><td>Subsanado con documentación respaldatoria en el acto</td></tr>
+      <tr><td>FI-2026-00318</td><td><strong>Discrepancia</strong></td><td class="num">248.500,00</td><td>Se eleva a la SSSalud para su resolución</td></tr>
+    </tbody>
+  </table>
+
+  <div class="firmas dos">
+    <div class="firma">Médico auditor del Agente del Seguro<br>firma, sello y matrícula</div>
+    <div class="firma">Representante del HPGD<br>firma, sello, cargo y aclaración</div>
+  </div>
+
+  <div class="nota">
+    El Agente del Seguro debe solicitar la auditoría conjunta <strong>dentro de los 15 días</strong>
+    de recibida la facturación, mediante carta documento, y cuenta con un plazo para realizarla
+    en terreno, en el hospital. Si no concurre, el HPGD puede reclamar ante la SSSalud
+    acompañando el comprobante de citación.<br>
+    <strong>El hospital público no es un prestador privado:</strong> el régimen establece la
+    equiparación entre el HPGD y el Agente del Seguro, y por eso los débitos unilaterales no le
+    son oponibles sin este procedimiento.
+  </div>
+</div>
+
+
+<!-- ============ 5. DESCARGO GENERADO ============ -->
+<div class="hoja generado">
+  <div class="sello-ficticio" style="border-color:var(--azul); color:var(--azul)">EJEMPLO FICTICIO</div>
+  <div class="membrete">
+    <div class="etiqueta">Provincia de Salta — Ministerio de Salud Pública</div>
+    <h2>HOSPITAL ZONAL «CERRO VERDE» — HPGD N.º 47</h2>
+    <div class="sub">Oficina de Facturación y Recupero</div>
+  </div>
+
+  <div class="titulo-doc">Nota de descargo y solicitud de refacturación</div>
+
+  <div class="marca-ia">
+    <strong>Documento generado por RecuperaSalud</strong> a partir del Detalle de Débitos del
+    22/05/2026. Tiempo de elaboración: <strong>menos de un minuto</strong>. Revisión y firma:
+    a cargo del responsable del área. La herramienta prepara el expediente; la decisión sigue
+    siendo humana.
+  </div>
+
+  <div class="campos tres">
+    <div class="campo"><div class="k">Destinatario</div><div class="v">Obra Social «A» — Auditoría</div></div>
+    <div class="campo"><div class="k">Referencia</div><div class="v">Planilla 2026-03-0412</div></div>
+    <div class="campo"><div class="k">Fecha</div><div class="v">08/08/2026</div></div>
+  </div>
+
+  <p style="margin:16px 0 10px">De mi mayor consideración:</p>
+
+  <p style="margin:0 0 12px">Me dirijo a ustedes en relación con el Detalle de Débitos
+  notificado el <strong>22 de mayo de 2026</strong> sobre la planilla de liquidación
+  2026-03-0412, a fin de presentar descargo respecto de los débitos que se detallan y
+  solicitar su refacturación, acompañando en cada caso la documentación respaldatoria que
+  subsana el defecto observado.</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:12%">N.º débito</th><th style="width:14%">Orden</th><th>Motivo observado y respuesta</th><th style="width:12%">Importe</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>DEB-2026-0117</td><td>7-4419-208663</td>
+        <td><strong>Ausencia de firma y sello del profesional.</strong> Se acompaña la orden
+        con firma, sello y matrícula del profesional actuante, junto con el informe del
+        estudio realizado.</td>
+        <td class="num">99.000,00</td>
+      </tr>
+      <tr>
+        <td>DEB-2026-0118</td><td>7-4419-211904</td>
+        <td><strong>Falta de diagnóstico.</strong> Se acompaña el R/P con diagnóstico
+        presuntivo consignado en letra legible y codificado según CIE-10.</td>
+        <td class="num">31.200,00</td>
+      </tr>
+      <tr>
+        <td>DEB-2026-0119</td><td>7-4419-214077</td>
+        <td><strong>Datos del beneficiario ilegibles.</strong> Se acompaña constancia de
+        afiliación vigente a la fecha de la prestación y copia del documento del beneficiario.</td>
+        <td class="num">37.200,00</td>
+      </tr>
+      <tr>
+        <td>DEB-2026-0121</td><td>7-4419-219355</td>
+        <td><strong>Enmienda sin salvar.</strong> Se acompaña la orden con la enmienda salvada
+        y refrendada por el profesional actuante.</td>
+        <td class="num">44.800,00</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="3">Total cuya refacturación se solicita</td><td class="num">212.200,00</td></tr>
+    </tfoot>
+  </table>
+
+  <p style="margin:12px 0">Se deja constancia de que la presente se formula dentro del plazo
+  previsto para la refacturación, contado desde la recepción de la documentación necesaria, y
+  se acompaña copia de los motivos del débito que la originan, conforme a las normas de
+  facturación vigentes.</p>
+
+  <p style="margin:0 0 12px">Respecto de los débitos <strong>DEB-2026-0122</strong>,
+  <strong>DEB-2026-0123</strong> y <strong>DEB-2026-0124</strong>, este Hospital no formula
+  observaciones y emitirá la Nota de Crédito correspondiente.</p>
+
+  <div class="jurada">
+    <strong>Alerta de vencimiento.</strong> Del total observado de $ 3.418.600,00, la
+    herramienta identificó <strong>$ 2.986.400,00 como recuperables</strong> (87 %). El plazo
+    para presentar la refacturación de este lote vence el <span class="reloj">22/08/2026 —
+    quedan 14 días</span>.
+  </div>
+
+  <div class="firmas dos">
+    <div class="firma">Responsable de Facturación y Recupero<br>firma, sello, cargo y aclaración</div>
+    <div class="firma">Director del Hospital<br>firma y sello</div>
+  </div>
+
+  <div class="nota">
+    <strong>Este es el documento que hoy no se escribe.</strong> No porque el hospital no
+    tenga razón, sino porque no hay horas administrativas para redactarlo orden por orden
+    antes de que venza el plazo. Un expediente que llega tarde vale cero.<br>
+    <em>Fundamentos normativos: Decreto 939/2000 PEN (régimen HPGD y sistema de débito
+    automático) · Resolución 487/2002 MS (procedimiento, Anexos I y II, auditoría conjunta,
+    plazos de presentación ante la SSSalud) · RG AFIP 4540/2019 (nota de crédito).</em>
+  </div>
+</div>
+
+</body>
+</html>

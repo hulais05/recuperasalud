@@ -1,0 +1,17 @@
+# Tema claro. Sin esto, los controles propios de Streamlit (barra lateral,
+# desplegables, tabla) siguen el tema del sistema operativo y quedan oscuros
+# aunque el CSS de la app pinte el fondo de blanco.
+#
+# Streamlit lee este archivo desde el directorio donde se ejecuta el comando,
+# así que conviene lanzar la app parada en la raíz del proyecto:
+#   cd "…/hackaton-salta" && streamlit run mvp/app.py
+
+[theme]
+base = "light"
+primaryColor = "#047857"
+backgroundColor = "#F6F8FB"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
+
+[server]
+headless = true
