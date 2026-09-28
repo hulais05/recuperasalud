@@ -311,7 +311,7 @@ with st.sidebar:
     st.divider()
     # La aprobación tiene que dejar constancia de quién firmó: sin un nombre
     # detrás, "la IA propone y una persona aprueba" es una frase, no un control.
-    auditor = st.text_input("Auditor a cargo", value="M. Hulais · Facturación")
+    auditor = st.text_input("Auditor a cargo", value="Auditor · Facturación")
 
     st.divider()
     # Ingesta sin fricción: el sistema no pide un formato nuevo ni una

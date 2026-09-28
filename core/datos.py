@@ -133,6 +133,19 @@ DIAS_REFACTURACION = 90         # 3 meses desde la notificación del débito
 DIAS_ANIVERSARIO_SSSALUD = 365  # Res. 487/2002 MS: 1 año aniversario de la prestación
 
 
+def _afiliado(rnd):
+    """Número de afiliado ficticio, con un formato que no se parece a un CUIL.
+
+    Consume las mismas tres tiradas que la versión anterior (que armaba un
+    XX-XXXXXXXX-X): así el resto del lote no cambia y la semilla 1812 sigue
+    dando el número de la presentación.
+    """
+    rnd.randint(10, 99)
+    medio = rnd.randint(10_000_000, 45_000_000)
+    rnd.randint(0, 9)
+    return f"AF-{medio % 1_000_000:06d}"
+
+
 def generar_lote(n=200, semilla=1812, hoy=None):
     """Devuelve una lista de n débitos sintéticos."""
     rnd = random.Random(semilla)
@@ -165,7 +178,7 @@ def generar_lote(n=200, semilla=1812, hoy=None):
         lote.append({
             "id": f"DEB-{2026}-{i+1:04d}",
             "obra_social": rnd.choice(OBRAS_SOCIALES),
-            "afiliado": f"{rnd.randint(10,99)}-{rnd.randint(10_000_000, 45_000_000)}-{rnd.randint(0,9)}",
+            "afiliado": _afiliado(rnd),
             "practica": practica,
             "fecha_prestacion": f_prest,
             "fecha_debito": f_debito,
